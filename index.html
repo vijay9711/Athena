@@ -3,168 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Form</title>
+    <title>Dynamic Claim Form</title>
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #f5f7fa;
-        }
+        body { background-color: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .box {
             max-width: 600px;
             margin: 50px auto;
-            padding: 25px;
+            padding: 30px;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
-        .hidden {
-            display: none;
-        }
+        .hidden { display: none; }
+        .form-label { font-weight: 500; color: #444; display: flex;}
+        .text-danger { font-size: 0.85rem; margin-top: 4px; display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="box">
-        <h4 class="mb-3">Claim Form</h4>
+        
 
-        <!-- DOS -->
         <div class="mb-3">
-            <label class="form-label">DOS</label>
+            <label class="form-label">DOS <span class="text-danger"> *</span></label>
             <input type="date" id="dos" class="form-control">
         </div>
 
-        <!-- Resubmission Code -->
         <div class="mb-3">
-            <label class="form-label">Resubmission Code (2 digit)</label>
-            <input type="number" id="resubCode" class="form-control">
+            <label class="form-label" id="resubLabel">Resubmission Code (2 digit)</label>
+            <input type="number" id="resubCode" class="form-control" placeholder="Optional">
+            <small id="resubError" class="text-danger"></small>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label" id="refLabel">Original Ref No (10-15 digits)</label>
+            <input type="text" id="refNo" class="form-control" placeholder="Optional">
+            <small id="refError" class="text-danger"></small>
         </div>
 
-        <!-- Original Ref No -->
-        <div class="mb-3">
-            <label class="form-label">Original Ref No (10-15 digits)</label>
-            <input type="text" id="refNo" class="form-control">
-        </div>
-
-        <!-- Kick Dropdown -->
-        <div class="mb-3">
-            <label class="form-label">Kick</label>
+        <div class="mb-4">
+            <label class="form-label">Kick Reason</label>
             <select id="kick" class="form-select">
-                <option selected disabled>Select option</option>
-                <option>Drbilling</option> 
-                <option>Drpcboapprove</option>
-                <option>Reconsideration</option>
-                <option>Plsappeal</option>
-                <option>Clmbilled</option>
-                <option>zdrybilled</option>
-                <option>clmdup</option> 
-                <option>Fwrtilinglimit</option>
+                <option selected disabled>Select an option...</option>
+                <option value="Drpbilling">Drpbilling</option> 
+                <option value="Drpcboapprove">Drpcboapprove</option>
+                <option value="Reconsideration">Reconsideration</option>
+                <option value="Plsappeal">Plsappeal</option>
+                <option value="Clmbilled">Clmbilled</option>
+                <option value="2drybilled">2drybilled</option>
+                <option value="clmdup">clmdup</option> 
+                <option value="Fwrfilinglimit">Fwrfilinglimit</option>
             </select>
         </div>
 
-        <!-- Drbilling Section -->
-        <div id="drbillingSection" class="hidden">
-
-            <!-- Submit Type -->
-            <div class="mb-3">
-                <label class="form-label">Trying to submit</label>
-                <select id="submitType" class="form-select">
-                    <option>Fresh claim</option>
-                    <option>Corrected claim</option>
-                    <option>Appeal</option>
-                </select>
-            </div>
-
-            <!-- TFL -->
-            <div class="mb-3 d-flex gap-2">
-                <div class="w-50">
-                    <label class="form-label">TFL no of Days</label>
-                    <input type="number" id="tfl" class="form-control">
-                </div>
-
-                <div class="w-50">
-                    <label class="form-label">Type</label>
-                    <select id="tflType" class="form-select">
-                        <option>Business</option>
-                        <option>Calendar</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Radio -->
-            <div class="mb-3">
-                <label class="form-label">Select Type</label><br>
-                <input type="radio" name="type" value="from" onclick="toggleType()"> From
-                <input type="radio" id="dosRadio" name="type" value="dos" onclick="toggleType()"> DOS
-            </div>
-
-            <!-- From Date -->
-            <div id="fromDateDiv" class="mb-3 hidden">
-                <label class="form-label">Select TFL Date</label>
-                <input type="date" id="fromDate" class="form-control">
-                <small id="tflError" class="text-danger"></small>
-            </div>
-
-            <!-- DOS -->
-            <div id="dosInputDiv" class="mb-3 hidden">
-                <label class="form-label">DOS (auto-filled)</label>
-                <input type="date" id="dos3" class="form-control" readonly>
-                <small id="dosError" class="text-danger"></small>
-            </div>
-
-        </div>
-
-        <!-- Submit -->
-        <button class="btn btn-primary w-100" onclick="submitForm()">Submit</button>
+        <button class="btn btn-primary w-100 py-2" onclick="submitForm()">Submit Claim</button>
     </div>
 </div>
 
-<script>
+<div class="modal fade" id="tflModal" tabindex="-1" aria-labelledby="tflModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="tflModalLabel">TFL & Submission Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Trying to submit</label>
+                    <select id="submitType" class="form-select">
+                        <option value="Fresh claim">Fresh claim</option>
+                        <option value="Corrected claim">Corrected claim</option>
+                        <option value="Appeal">Appeal</option>
+                    </select>
+                </div>
 
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">TFL Days <span class="text-danger">*</span></label>
+                        <input type="number" id="tfl" class="form-control" placeholder="e.g. 90">
+                        <small id="tflDaysError" class="text-danger"></small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Day Type</label>
+                        <select id="tflType" class="form-select">
+                            <option value="Business">Business Days</option>
+                            <option value="Calendar">Calendar Days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label d-block">Calculate TFL From:</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type" id="radioFrom" value="from" onclick="toggleType()">
+                        <label class="form-check-label" for="radioFrom">Specific Date</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="type" id="dosRadio" value="dos" onclick="toggleType()">
+                        <label class="form-check-label" for="dosRadio">DOS</label>
+                    </div>
+                </div>
+
+                <div id="fromDateDiv" class="mb-3 hidden">
+                    <label class="form-label">Select TFL Start Date</label>
+                    <input type="date" id="fromDate" class="form-control">
+                    <small id="tflError" class="text-danger"></small>
+                </div>
+
+                <div id="dosInputDiv" class="mb-3 hidden">
+                    <label class="form-label">DOS (Linked from Main Form)</label>
+                    <input type="date" id="dos3" class="form-control" disabled>
+                    <small id="dosError" class="text-danger"></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success w-100" onclick="applyAndCloseModal()">Apply & Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Elements
 const dosInput = document.getElementById("dos");
 const dosRadio = document.getElementById("dosRadio");
+const resubCode = document.getElementById("resubCode");
+const refNo = document.getElementById("refNo");
+const submitType = document.getElementById("submitType");
+const resubError = document.getElementById("resubError");
+const refError = document.getElementById("refError");
 
-// Restrict "Select TFL Date" to past
-const today = new Date().toISOString().split("T")[0];
-document.getElementById("fromDate").setAttribute("max", today);
+// Initialize: Set max date for TFL selector to today
+document.getElementById("fromDate").setAttribute("max", new Date().toISOString().split("T")[0]);
 
-// Enable / Disable DOS radio
-function toggleDosRadio() {
-    if (!dosInput.value) {
+/**
+ * 1. MODAL AUTO-TRIGGER LOGIC
+ */
+document.getElementById("kick").addEventListener("change", function () {
+    const hideValues = ["clmdup", "Fwrfilinglimit"];
+    
+    if (this.value && !hideValues.includes(this.value)) {
+        const modalElement = document.getElementById('tflModal');
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modalInstance.show();
+    }
+});
+
+/**
+ * 2. SYNC & TOGGLE LOGIC
+ */
+dosInput.addEventListener("change", function() {
+    // Disable DOS radio if main DOS is empty
+    if (!this.value) {
         dosRadio.disabled = true;
         dosRadio.checked = false;
         document.getElementById("dosInputDiv").classList.add("hidden");
     } else {
         dosRadio.disabled = false;
-    }
-}
-
-toggleDosRadio();
-dosInput.addEventListener("change", toggleDosRadio);
-// Sync bottom DOS whenever top DOS changes
-dosInput.addEventListener("change", function () {
-    if (dosRadio.checked) {
-        document.getElementById("dos3").value = dosInput.value;
-    }
-});
-// Kick dropdown logic
-document.getElementById("kick").addEventListener("change", function () {
-    const hideValues = ["clmdup", "Fwrtilinglimit"];
-
-    if (hideValues.includes(this.value)) {
-        document.getElementById("drbillingSection").classList.add("hidden");
-    } else {
-        document.getElementById("drbillingSection").classList.remove("hidden");
+        document.getElementById("dos3").value = this.value;
     }
 });
 
-// Toggle Type
 function toggleType() {
     const selected = document.querySelector('input[name="type"]:checked').value;
-
     document.getElementById("fromDateDiv").classList.add("hidden");
     document.getElementById("dosInputDiv").classList.add("hidden");
 
@@ -172,68 +179,183 @@ function toggleType() {
         document.getElementById("fromDateDiv").classList.remove("hidden");
     } else {
         document.getElementById("dosInputDiv").classList.remove("hidden");
-
-        if (dosInput.value) {
-            document.getElementById("dos3").value = dosInput.value;
-        } else {
-            document.getElementById("dos3").value = "";
-        }
+        document.getElementById("dos3").value = dosInput.value || "";
     }
 }
 
-// Reusable Validation
-function validateTFLRange(startDateValue, tflDays, errorId) {
+// Update labels for Corrected Claims
+submitType.addEventListener("change", function() {
+    const isCorrected = this.value === "Corrected claim";
+    const resubLabel = document.getElementById("resubLabel");
+    const refLabel = document.getElementById("refLabel");
 
+    if (isCorrected) {
+        resubLabel.innerHTML = 'Resubmission Code (2 digit) <span class="text-danger">*</span>';
+        refLabel.innerHTML = 'Original Ref No (10-15 digits) <span class="text-danger">*</span>';
+    } else {
+        resubLabel.innerHTML = 'Resubmission Code (2 digit)';
+        refLabel.innerHTML = 'Original Ref No (10-15 digits)';
+        resubError.innerText = "";
+        refError.innerText = "";
+    }
+});
+
+/**
+ * 3. CALCULATION & VALIDATION LOGIC
+ */
+function validateTFLRange(startDateValue, tflDays, errorId) {
     const errorEl = document.getElementById(errorId);
+    const tflType = document.getElementById("tflType").value;
     errorEl.innerText = "";
 
-    if (!startDateValue || !tflDays) return true;
+    if (!startDateValue || isNaN(tflDays)) return true;
 
     let startDate = new Date(startDateValue);
     let currentDate = new Date();
-
     let endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + tflDays);
-
+    
     startDate.setHours(0,0,0,0);
     currentDate.setHours(0,0,0,0);
+
+    if (tflType === "Calendar") {
+        endDate.setDate(startDate.getDate() + tflDays);
+    } else {
+        let addedDays = 0;
+        while (addedDays < tflDays) {
+            endDate.setDate(endDate.getDate() + 1);
+            let dayOfWeek = endDate.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip Sat/Sun
+                addedDays++;
+            }
+        }
+    }
     endDate.setHours(0,0,0,0);
 
     if (currentDate < startDate || currentDate > endDate) {
-        errorEl.innerText = "Current date is outside the TFL range!";
+        const typeLabel = tflType === "Business" ? "business days" : "days";
+        errorEl.innerText = `Current date is outside the ${tflDays} ${typeLabel} limit!`;
         return false;
     }
-
     return true;
 }
 
-// Submit
-function submitForm() {
+/**
+ * 1. MODAL VALIDATION & CLOSING
+ */
+ function applyAndCloseModal() {
+    const tflInput = document.getElementById("tfl");
+    const tflDays = parseInt(tflInput.value);
+    const selectedType = document.querySelector('input[name="type"]:checked');
+    const tflDaysError = document.getElementById("tflDaysError");
+    
+    let isModalValid = true;
 
-    let tfl = parseInt(document.getElementById("tfl").value);
-    let selectedType = document.querySelector('input[name="type"]:checked');
-
+    // Reset Modal Errors
+    tflDaysError.innerText = "";
     document.getElementById("tflError").innerText = "";
     document.getElementById("dosError").innerText = "";
 
-    if (selectedType) {
+    // 1. Mandatory Check for TFL Days
+    if (!tflInput.value || isNaN(tflDays) || tflDays <= 0) {
+        tflDaysError.innerText = "TFL days is required.";
+        isModalValid = false;
+    }
 
+    // 2. Mandatory Check for Calculation Type
+    if (!selectedType) {
+        alert("Please select a calculation type (From or DOS).");
+        isModalValid = false;
+    } else {
+        // 3. Run TFL Range Logic
         if (selectedType.value === "from") {
             let fromDate = document.getElementById("fromDate").value;
-
-            if (!validateTFLRange(fromDate, tfl, "tflError")) return;
-
+            if (!fromDate) {
+                document.getElementById("tflError").innerText = "Please select a date.";
+                isModalValid = false;
+            } else if (!validateTFLRange(fromDate, tflDays, "tflError")) {
+                isModalValid = false;
+            }
         } else {
-            let dosDate = dosInput.value;
-
-            if (!validateTFLRange(dosDate, tfl, "dosError")) return;
+            if (!dosInput.value) {
+                document.getElementById("dosError").innerText = "Main DOS must be filled to use this option.";
+                isModalValid = false;
+            } else if (!validateTFLRange(dosInput.value, tflDays, "dosError")) {
+                isModalValid = false;
+            }
         }
     }
 
-    console.log("Form Submitted");
-    alert("Form submitted successfully!");
+    if (isModalValid) {
+        const modalElement = document.getElementById('tflModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        modalInstance.hide();
+        document.getElementById("kick").classList.add("is-valid");
+    }
+    return isModalValid; // Return status for the submit function to use
 }
 
+/**
+ * 4. FINAL SUBMISSION
+ */
+ function submitForm() {
+    // Reset Main Errors
+    resubError.innerText = "";
+    refError.innerText = "";
+    
+    // Create a DOS error element if it doesn't exist, or just use an alert
+    const dosError = document.getElementById("dosErrorMain") || (()=>{
+        const el = document.createElement('small');
+        el.id = "dosErrorMain";
+        el.className = "text-danger";
+        dosInput.parentNode.appendChild(el);
+        return el;
+    })();
+    dosError.innerText = "";
+
+    let isValid = true;
+
+    // 1. Validate Main DOS
+    if (!dosInput.value) {
+        dosError.innerText = "Date of Service is required.";
+        isValid = false;
+    }
+
+    // 2. Validate Corrected Claim Fields
+    if (submitType.value === "Corrected claim") {
+        if (!resubCode.value) {
+            resubError.innerText = "Resubmission Code is required.";
+            isValid = false;
+        }
+        if (!refNo.value || refNo.value.length < 10 || refNo.value.length > 15) {
+            refError.innerText = "Original Ref No (10-15 digits) is required.";
+            isValid = false;
+        }
+    }
+
+    // 3. Validate TFL (if Kick requires it)
+    const kickDropdown = document.getElementById("kick");
+    const hideValues = ["clmdup", "Fwrfilinglimit"];
+    
+    if (kickDropdown.value && !hideValues.includes(kickDropdown.value) && kickDropdown.value !== "Select an option...") {
+        // Re-run the modal validation logic
+        const isModalValid = applyAndCloseModal(); 
+        
+        if (!isModalValid) {
+            isValid = false;
+            // Re-open modal if it was closed or not yet filled correctly
+            const modalElement = document.getElementById('tflModal');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.show();
+        }
+    } else if (!kickDropdown.value || kickDropdown.value === "Select an option...") {
+        alert("Please select a Kick Reason.");
+        isValid = false;
+    }
+
+    if (isValid) {
+        alert("Form validated and submitted successfully!");
+    }
+}
 </script>
 
 </body>
